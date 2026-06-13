@@ -2,18 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
-    libgomp1 \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    wget \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Copy requirements
 COPY requirements.txt .
@@ -30,5 +22,5 @@ RUN mkdir -p /tmp/dubbot/uploads /tmp/dubbot/audio /tmp/dubbot/images /tmp/dubbo
 # Expose port
 EXPOSE 8000
 
-# Start command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start with single worker for Railway free tier
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--timeout-keep-alive", "30"]
